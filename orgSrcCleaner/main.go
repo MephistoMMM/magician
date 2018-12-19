@@ -20,7 +20,7 @@
 
 package main
 
-import "github.com/MephistoMMM/magician/orgSrcArranger/cmd"
+import "github.com/MephistoMMM/magician/orgSrcCleaner/cmd"
 
 func main() {
 	cmd.Execute()

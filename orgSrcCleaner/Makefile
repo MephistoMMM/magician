@@ -3,7 +3,7 @@
 #
 
 # Target binaries.
-TARGET := orgSrcArranger
+TARGET := orgSrcCleaner
 
 # Project main package location (can be multiple ones).
 CMD_DIR := .

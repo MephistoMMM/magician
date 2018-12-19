@@ -33,8 +33,8 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "orgSrcArranger",
-	Short: "A brief description of your application",
+	Use:   "orgSrcCleaner <path>",
+	Short: "",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
 
@@ -61,7 +61,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.orgSrcArranger.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.orgSrcCleaner.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -81,9 +81,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".orgSrcArranger" (without extension).
+		// Search config in home directory with name ".orgSrcCleaner" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".orgSrcArranger")
+		viper.SetConfigName(".orgSrcCleaner")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

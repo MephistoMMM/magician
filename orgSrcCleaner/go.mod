@@ -1,4 +1,4 @@
-module github.com/MephistoMMM/magician/orgSrcArranger
+module github.com/MephistoMMM/magician/orgSrcCleaner
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
