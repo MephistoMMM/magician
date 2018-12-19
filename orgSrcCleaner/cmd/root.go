@@ -34,13 +34,11 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "orgSrcCleaner <path>",
-	Short: "",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Clean up linked static sources in org file.",
+	Long: `orgSrcCleaner clean up static sources, like pictures and pdfs,
+linked in your org files. It could restore your static sources to one directory,
+to directories named by the filename of org file, or to directories named by the
+headline.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
