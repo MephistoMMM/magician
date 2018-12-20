@@ -17,19 +17,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package cmd
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/MephistoMMM/magician/lib"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+
+var log = lib.Logger
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -39,9 +41,22 @@ var rootCmd = &cobra.Command{
 linked in your org files. It could restore your static sources to one directory,
 to directories named by the filename of org file, or to directories named by the
 headline.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Args: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
+			return err
+		}
+
+		// the argument should be the path of actual file or directory
+		src := args[0]
+		if lib.IsNotExist(src) {
+			return fmt.Errorf("src is not exist: %s", src)
+		}
+
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		log.Info("Hello, world!")
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
