@@ -20,6 +20,7 @@
 package lib
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,6 +28,15 @@ import (
 	"os/user"
 	"path/filepath"
 )
+
+// FileLineParser defines which file to be parsed and how to parse it.
+type FileLineParser interface {
+	// FilePath return the path of the file to be parsed
+	FilePath() string
+	// Parse accepts a line as parameter and should parse
+	// it to a struct
+	Parse(line string) (interface{}, error)
+}
 
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. Otherise, copy the file contents from src to dst.
@@ -118,6 +128,30 @@ func WriteFile(path string, data []byte) error {
 // ReadFile just keep the same style as WriteFile
 func ReadFile(path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
+}
+
+// ScanLines read file line by line and call Parse method of FileLineParser
+// for each line.
+//
+// This function only collect non-nil result returned by Parser().
+func ScanLines(parser FileLineParser) ([]interface{}, error) {
+	fileHandle, _ := os.Open(parser.FilePath())
+	defer fileHandle.Close()
+
+	fileScanner := bufio.NewScanner(fileHandle)
+	results := make([]interface{}, 0)
+	for fileScanner.Scan() {
+		result, err := parser.Parse(fileScanner.Text())
+		if err != nil {
+			return nil, err
+		}
+
+		if result != nil {
+			results = append(results, result)
+		}
+	}
+
+	return results, nil
 }
 
 func HomeDir() string {
