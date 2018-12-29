@@ -52,6 +52,13 @@ type OrgLinkParser struct {
 	curHeaders []OrgHeader
 }
 
+// cloneHeader ...
+func (fp *OrgLinkParser) cloneHeader() []OrgHeader {
+	orgHeader := make([]OrgHeader, len(fp.curHeaders))
+	copy(orgHeader, fp.curHeaders)
+	return orgHeader
+}
+
 // pushHeader ...
 func (fp *OrgLinkParser) pushHeader(header OrgHeader) {
 	fp.curHeaders = append(fp.curHeaders, header)
@@ -87,9 +94,9 @@ func (fp *OrgLinkParser) FilePath() string {
 // OrgLink with file name and headers above link.
 func (fp *OrgLinkParser) Parse(line string) (interface{}, error) {
 	// first match stars at the beginning of line
-	stars := reHeader.ExpandString([]byte{}, "$Level", line,
-		reHeader.FindStringSubmatchIndex(line))
-	if len(stars) != 0 {
+	if reHeader.MatchString(line) {
+		stars := reHeader.ExpandString([]byte{}, "$Level", line,
+			reHeader.FindStringSubmatchIndex(line))
 		curHeader := OrgHeader{
 			Stars: string(stars),
 			Level: len(stars),
@@ -103,6 +110,25 @@ func (fp *OrgLinkParser) Parse(line string) (interface{}, error) {
 		}
 
 		fp.pushHeader(curHeader)
+
+		return nil, nil
+	}
+
+	// second match link element
+	if reLink.MatchString(line) {
+		// TODO find all links in single line
+		link := reLink.FindString(line)
+		indexes := reLink.FindStringSubmatchIndex(line)
+		typ := reLink.ExpandString([]byte{}, "$Type", line, indexes)
+		path := reLink.ExpandString([]byte{}, "$Path", line, indexes)
+
+		return &OrgLink{
+			File:    fp.FilePath(),
+			Headers: fp.cloneHeader(),
+			Link:    link,
+			Type:    typ,
+			Path:    path,
+		}, nil
 	}
 
 	return nil, nil
