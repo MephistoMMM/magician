@@ -52,6 +52,14 @@ type OrgLinkParser struct {
 	curHeaders []OrgHeader
 }
 
+// NewOrgLinkParser create a new OrgLinkParser
+func NewOrgLinkParser(file string) *OrgLinkParser {
+	return &OrgLinkParser{
+		file:       file,
+		curHeaders: make([]OrgHeader, 0, 4),
+	}
+}
+
 // cloneHeader ...
 func (fp *OrgLinkParser) cloneHeader() []OrgHeader {
 	orgHeader := make([]OrgHeader, len(fp.curHeaders))
@@ -126,8 +134,8 @@ func (fp *OrgLinkParser) Parse(line string) (interface{}, error) {
 			File:    fp.FilePath(),
 			Headers: fp.cloneHeader(),
 			Link:    link,
-			Type:    typ,
-			Path:    path,
+			Type:    string(typ),
+			Path:    string(path),
 		}, nil
 	}
 
