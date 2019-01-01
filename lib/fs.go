@@ -29,6 +29,12 @@ import (
 	"path/filepath"
 )
 
+// FileIterator defines a iterator to list files in a directory.
+type FileIterator interface {
+	HasNext() bool
+	Next() (string, error)
+}
+
 // FileLineParser defines which file to be parsed and how to parse it.
 type FileLineParser interface {
 	// FilePath return the path of the file to be parsed
