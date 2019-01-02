@@ -1,4 +1,4 @@
-// Copyright © 2018 Mephis Pheies <mephistommm@gmail.com>
+// Copyright © 2019 Mephis Pheies <mephistommm@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,54 +21,24 @@ package lib
 
 import (
 	"os"
-
-	log "github.com/sirupsen/logrus"
+	"path"
+	"testing"
 )
 
-var Logger = log.New()
+func TestFileIterartor(t *testing.T) {
+	home := os.Getenv("HOME")
 
-func init() {
-	val, ok := os.LookupEnv("MAGICIAN_ENV")
-	if !ok {
-		val = "pro"
+	magicianProjectPath := path.Join(home, "Desktop")
+	iterator, err := NewFileIteratorWithDefaultFilter(magicianProjectPath)
+	if err != nil {
+		t.Error(err)
 	}
 
-	if val == "pro" {
-		Logger.SetLevel(log.InfoLevel)
-	} else {
-		Logger.SetLevel(log.DebugLevel)
+	for iterator.HasNext() {
+		file, err := iterator.Next()
+		if err != nil {
+			t.Error(err)
+		}
+		t.Logf("%s\n", file)
 	}
-
-	// Output to stdout instead of the default stderr
-	// Can be any io.Writer, see below for File example
-	Logger.SetOutput(os.Stdout)
-	Logger.SetFormatter(&log.TextFormatter{
-		DisableTimestamp: true,
-	})
 }
-
-var (
-	Debug   = Logger.Debug
-	Debugf  = Logger.Debugf
-	Debugln = Logger.Debugln
-
-	Info   = Logger.Info
-	Infof  = Logger.Infof
-	Infoln = Logger.Infoln
-
-	Warn   = Logger.Warn
-	Warnf  = Logger.Warnf
-	Warnln = Logger.Warnln
-
-	Error   = Logger.Error
-	Errorf  = Logger.Errorf
-	Errorln = Logger.Errorln
-
-	Fatal   = Logger.Fatal
-	Fatalf  = Logger.Fatalf
-	Fatalln = Logger.Fatalln
-
-	Panic   = Logger.Panic
-	Panicf  = Logger.Panicf
-	Panicln = Logger.Panicln
-)

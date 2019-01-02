@@ -31,6 +31,8 @@ type defaultFileIterator struct {
 	index int
 	files []os.FileInfo
 	dirs  []string
+
+	filter FilterSupport
 }
 
 // Init ...
@@ -46,10 +48,15 @@ func (dfi *defaultFileIterator) loadFilesAndDirs(dir string, files []os.FileInfo
 	}
 
 	for _, file := range fs {
+		path := filepath.Join(dir, file.Name())
+		if !Filter(dfi.filter, path, file) {
+			continue
+		}
+
 		if file.IsDir() {
-			dirs = append(dirs, filepath.Join(dir, file.Name()))
+			dirs = append(dirs, path)
 		} else {
-			files = append(fs, file)
+			files = append(files, file)
 		}
 	}
 
@@ -84,23 +91,37 @@ func (dfi *defaultFileIterator) HasNext() bool {
 // Next ...
 func (dfi *defaultFileIterator) Next() (path string, err error) {
 	defer func() {
-		if err = recover(); err != nil {
+		if e := recover(); e != nil {
+			err = e.(error)
 			return
 		}
 	}()
 
-	if dfi.HasNext() {
-		return filepath.Join(dfi.dir, dfi.files[dfi.index].Name()), nil
+	if !dfi.HasNext() {
+		return "", nil
 	}
 
-	return "", nil
+	result := filepath.Join(dfi.dir, dfi.files[dfi.index].Name())
+	dfi.index++
+	return result, nil
 }
 
-func NewFileIterator(directory string) (FileIterator, error) {
+func defaultFilterChain() FilterSupport {
+	var filterChain FilterSupport
+	tmp, _ := NewFilterDotSupport()
+	filterChain = tmp
+	tmp, _ = NewFilterUnregularSupport()
+	filterChain.SetNext(tmp)
+	return filterChain
+}
+
+func NewFileIteratorWithDefaultFilter(directory string) (FileIterator, error) {
+
 	iterator := &defaultFileIterator{
-		index: 0,
-		files: make([]os.FileInfo, 0),
-		dirs:  make([]string, 0),
+		index:  0,
+		files:  make([]os.FileInfo, 0),
+		dirs:   make([]string, 0),
+		filter: defaultFilterChain(),
 	}
 
 	if err := iterator.Init(directory); err != nil {
