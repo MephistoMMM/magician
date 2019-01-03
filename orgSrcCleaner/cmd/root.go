@@ -22,8 +22,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/MephistoMMM/magician/lib"
+	"github.com/MephistoMMM/magician/orgSrcCleaner/parser"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -55,7 +57,45 @@ headline.`,
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Hello, world!")
+		iterator, err := lib.NewFileIteratorWithDefaultFilter(args[0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		orgLinks := make(chan *parser.OrgLink, 10)
+		go func(links <-chan *parser.OrgLink) {
+			for link := range links {
+				log.Debug(link)
+				log.Infoln(link)
+			}
+
+			wg.Done()
+		}(orgLinks)
+
+		for iterator.HasNext() {
+			file, err := iterator.Next()
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			log.Debug(file)
+			results, err := lib.ScanLines(parser.NewOrgLinkParser(file))
+			if err != nil {
+				log.Errorln(err)
+				continue
+			}
+
+			go func(links []interface{}) {
+				for _, link := range links {
+					orgLinks <- link.(*parser.OrgLink)
+				}
+			}(results)
+		}
+		close(orgLinks)
+
+		wg.Wait()
 	},
 }
 
