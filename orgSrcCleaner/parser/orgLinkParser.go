@@ -20,6 +20,7 @@
 package parser
 
 import (
+	"path/filepath"
 	re "regexp"
 )
 
@@ -54,8 +55,13 @@ type OrgLinkParser struct {
 
 // NewOrgLinkParser create a new OrgLinkParser
 func NewOrgLinkParser(file string) *OrgLinkParser {
+	abspath, err := filepath.Abs(file)
+	if err != nil {
+		panic(err)
+	}
+
 	return &OrgLinkParser{
-		file:       file,
+		file:       abspath,
 		curHeaders: make([]OrgHeader, 0, 4),
 	}
 }
@@ -128,14 +134,16 @@ func (fp *OrgLinkParser) Parse(line string) (interface{}, error) {
 		link := reLink.FindString(line)
 		indexes := reLink.FindStringSubmatchIndex(line)
 		typ := reLink.ExpandString([]byte{}, "$Type", line, indexes)
-		path := reLink.ExpandString([]byte{}, "$Path", line, indexes)
+		path := string(reLink.ExpandString(
+			[]byte{}, "$Path", line, indexes))
+		path = filepath.Join(filepath.Dir(fp.file), path)
 
 		return &OrgLink{
 			File:    fp.FilePath(),
 			Headers: fp.cloneHeader(),
 			Link:    link,
 			Type:    string(typ),
-			Path:    string(path),
+			Path:    path,
 		}, nil
 	}
 
