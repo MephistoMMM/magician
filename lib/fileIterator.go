@@ -108,9 +108,9 @@ func (dfi *defaultFileIterator) Next() (path string, err error) {
 
 func defaultFilterChain() FilterSupport {
 	var filterChain FilterSupport
-	tmp, _ := NewFilterDotSupport()
+	tmp, _ := NewFilterIgnoreDotSupport()
 	filterChain = tmp
-	tmp, _ = NewFilterUnregularSupport()
+	tmp, _ = NewFilterIgnoreUnregularSupport()
 	filterChain.SetNext(tmp)
 	return filterChain
 }
@@ -122,6 +122,22 @@ func NewFileIteratorWithDefaultFilter(directory string) (FileIterator, error) {
 		files:  make([]os.FileInfo, 0),
 		dirs:   make([]string, 0),
 		filter: defaultFilterChain(),
+	}
+
+	if err := iterator.Init(directory); err != nil {
+		return nil, err
+	}
+
+	return iterator, nil
+}
+
+// NewFileIterator create a new file iterator.
+func NewFileIterator(directory string, filterChain FilterSupport) (FileIterator, error) {
+	iterator := &defaultFileIterator{
+		index:  0,
+		files:  make([]os.FileInfo, 0),
+		dirs:   make([]string, 0),
+		filter: filterChain,
 	}
 
 	if err := iterator.Init(directory); err != nil {

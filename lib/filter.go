@@ -20,6 +20,7 @@
 package lib
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -121,13 +122,13 @@ func Filter(chain FilterSupport, path string, info os.FileInfo) bool {
 	return true
 }
 
-type IgnoreRegexpMatchSupport struct {
+type RegexpMatchSupport struct {
 	BaseSupport
 
 	pattern *regexp.Regexp
 }
 
-func NewMultiIgnoreRegexpMatchSupports(exprs []string) ([]FilterSupport, error) {
+func NewMultiRegexpMatchSupports(exprs []string) ([]FilterSupport, error) {
 	iss := make([]FilterSupport, 0, len(exprs))
 	for _, exprs := range exprs {
 		is, err := NewFilterRegexpMatchSupport(exprs)
@@ -141,6 +142,47 @@ func NewMultiIgnoreRegexpMatchSupports(exprs []string) ([]FilterSupport, error) 
 }
 
 func NewFilterRegexpMatchSupport(expr string) (FilterSupport, error) {
+	pattern, err := regexp.Compile(expr)
+	if err != nil {
+		return nil, err
+	}
+
+	is := &RegexpMatchSupport{
+		pattern: pattern,
+	}
+	is.SetName(fmt.Sprintf("RegexpMatchSupport[%s]", expr))
+	return is, nil
+}
+
+// IsIgnore ...
+func (rms *RegexpMatchSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+	if rms.pattern.MatchString(path) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+type IgnoreRegexpMatchSupport struct {
+	BaseSupport
+
+	pattern *regexp.Regexp
+}
+
+func NewMultiIgnoreRegexpMatchSupports(exprs []string) ([]FilterSupport, error) {
+	iss := make([]FilterSupport, 0, len(exprs))
+	for _, exprs := range exprs {
+		is, err := NewFilterIgnoreRegexpMatchSupport(exprs)
+		if err != nil {
+			return nil, err
+		}
+
+		iss = append(iss, is)
+	}
+	return iss, nil
+}
+
+func NewFilterIgnoreRegexpMatchSupport(expr string) (FilterSupport, error) {
 	pattern, err := regexp.Compile(expr)
 	if err != nil {
 		return nil, err
@@ -168,7 +210,7 @@ type IgnoreSpecialMadeSupport struct {
 	modeMask os.FileMode
 }
 
-func NewFilterUnregularSupport() (FilterSupport, error) {
+func NewFilterIgnoreUnregularSupport() (FilterSupport, error) {
 	is := &IgnoreSpecialMadeSupport{
 		modeMask: os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeIrregular,
 	}
@@ -190,7 +232,7 @@ type IgnoreDotSupport struct {
 	BaseSupport
 }
 
-func NewFilterDotSupport() (FilterSupport, error) {
+func NewFilterIgnoreDotSupport() (FilterSupport, error) {
 	is := &IgnoreDotSupport{}
 	is.SetName("IgnoreDotSupport")
 	return is, nil

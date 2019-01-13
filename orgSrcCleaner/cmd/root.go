@@ -22,9 +22,11 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/MephistoMMM/magician/lib"
+	"github.com/MephistoMMM/magician/orgSrcCleaner/fileIterator"
 	"github.com/MephistoMMM/magician/orgSrcCleaner/parser"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -57,12 +59,17 @@ headline.`,
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		iterator, err := lib.NewFileIteratorWithDefaultFilter(args[0])
+		directory, err := filepath.Abs(args[0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+		log.Debug(directory)
+		iterator, err := fileIterator.NewFileIterator(directory)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		var wg sync.WaitGroup
+		var wg, wg2 sync.WaitGroup
 		wg.Add(1)
 		orgLinks := make(chan *parser.OrgLink, 10)
 		go func(links <-chan *parser.OrgLink) {
@@ -79,20 +86,26 @@ headline.`,
 			if err != nil {
 				log.Fatalln(err)
 			}
-
 			log.Debug(file)
-			results, err := lib.ScanLines(parser.NewOrgLinkParser(file))
-			if err != nil {
-				log.Errorln(err)
-				continue
-			}
 
-			go func(links []interface{}) {
+			wg2.Add(1)
+			go func(file string) {
+				links, err := lib.ScanLines(parser.NewOrgLinkParser(file))
+				if err != nil {
+					log.Errorln(err)
+					wg2.Done()
+					return
+				}
+
+				log.Debug(links)
 				for _, link := range links {
 					orgLinks <- link.(*parser.OrgLink)
 				}
-			}(results)
+				wg2.Done()
+			}(file)
 		}
+
+		wg2.Wait()
 		close(orgLinks)
 
 		wg.Wait()
