@@ -48,8 +48,8 @@ type Object interface {
 	Id() string
 }
 
-// ProcessNode is the basic interface of nodes in process line
-type ProcessNode interface {
+// ProcessorNode is the basic interface of nodes in process line
+type ProcessorNode interface {
 	// Context return context in process
 	Context() Context
 
@@ -72,4 +72,36 @@ type ProcessNode interface {
 
 	// Stop ProcessNode
 	Stop() error
+}
+
+// PipeNode nodes combined to pipe processor
+type PipeNode interface {
+	ProcessorNode
+}
+
+// BifurcateProcessorNode nodes combined to bifurcate processor
+type BifurcateProcessorNode interface {
+	ProcessorNode
+
+	// SetProcessorNum config number of bifurcate processor
+	SetProcesorNum(num int)
+}
+
+// AOVNode nodes combined to aov processor
+type AOVNode interface {
+	ProcessorNode
+
+	// SetProcessorNum config number of processors in aov
+	SetProcesorNum(num int)
+}
+
+// ConditionNode nodes combined to condition processor
+type ConditionNode interface {
+	ProcessorNode
+
+	// SetOKProcessor combine a processor run while condition is ok
+	SetOKProcessor(p ProcessorNode) ProcessorNode
+
+	// SetOKProcessor combine a processor run while condition is nil
+	SetNilProcessor(p ProcessorNode) ProcessorNode
 }
