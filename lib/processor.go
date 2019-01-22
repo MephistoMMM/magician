@@ -55,7 +55,7 @@ type ProcessorNode interface {
 
 	// SetNextNode combine a process node to the end of current node
 	// and return it
-	SetNextNode() ProcessNode
+	SetNextNode() ProcessorNode
 
 	// InputChan return a chan to receive Object for process
 	InputChan() chan<- Object
@@ -65,7 +65,7 @@ type ProcessorNode interface {
 	OutputChan() <-chan Object
 
 	// Copy deeply copy the ProcessNode to create a new ProcessNode
-	Copy() ProcessNode
+	Copy() ProcessorNode
 
 	// Run ProcessNode
 	Run() error
