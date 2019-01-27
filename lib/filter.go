@@ -203,15 +203,15 @@ func (irms *IgnoreRegexpMatchSupport) IsIgnore(path string, info os.FileInfo) (b
 	return false, nil
 }
 
-// IgnoreSpecialMadeSupport ignore special type fies.
-type IgnoreSpecialMadeSupport struct {
+// IgnoreSpecialModeSupport ignore special type fies.
+type IgnoreSpecialModeSupport struct {
 	BaseSupport
 
 	modeMask os.FileMode
 }
 
 func NewFilterIgnoreUnregularSupport() (FilterSupport, error) {
-	is := &IgnoreSpecialMadeSupport{
+	is := &IgnoreSpecialModeSupport{
 		modeMask: os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeIrregular,
 	}
 	is.SetName("IgnoreUnregularSupport")
@@ -219,7 +219,7 @@ func NewFilterIgnoreUnregularSupport() (FilterSupport, error) {
 }
 
 // IsIgnore ...
-func (isms *IgnoreSpecialMadeSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+func (isms *IgnoreSpecialModeSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
 	if isms.modeMask&info.Mode() != 0 {
 		return true, nil
 	}

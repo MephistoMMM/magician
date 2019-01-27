@@ -118,6 +118,11 @@ func IsDir(path string) bool {
 	return err == nil && fi.IsDir()
 }
 
+func IsFile(path string) bool {
+	fi, err := os.Stat(path)
+	return err == nil && fi.Mode()&os.ModeType == 0
+}
+
 func IsNotExist(path string) bool {
 	_, err := os.Stat(path)
 	return os.IsNotExist(err)
