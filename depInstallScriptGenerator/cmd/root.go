@@ -35,14 +35,34 @@ import (
 var installCmd string
 var log = lib.Logger
 
-const funcTemplate = `
+const (
+	depTemplate = `
 function install_{{.FuncName}}() {
     echo "================================> install {{.Name}} ..."
     {{range .Dependences}}install_{{.FuncName}} $1
+    if [[ ! $? -eq 0 ]]; then
+        exit $?
+    fi
     {{end}}{{installCmd}} $1/{{.Pkg}}
+    if [[ ! $? -eq 0 ]]; then
+        echo "failed to install {{.Name}}"
+        exit 1
+    fi
     echo "================================> done"
 }
 `
+	reqTemplate = `
+function start_to_install_requirements() {
+    echo "================================> start to install requirements ..."
+    {{range .Pkgs}}install_{{.FuncName}} $1
+    if [[ ! $? -eq 0 ]]; then
+        exit $?
+    fi
+    {{end}}
+    echo "================================> done"
+}
+`
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -122,18 +142,26 @@ func (rs Requirements) GenScript(installCmd string) (*bytes.Buffer, error) {
 		"installCmd": func() string { return installCmd },
 	}
 
-	tmpl, err := template.New(
-		"DependenceTemp").Funcs(funcMap).Parse(funcTemplate)
+	// create Template used to render dependences
+	deptmpl, err := template.New(
+		"DependenceTmpl").Funcs(funcMap).Parse(depTemplate)
 	if err != nil {
 		return nil, err
 	}
+	// create Template used to render requirement
+	reqtmpl, err := template.New(
+		"RequirementTmpl").Parse(reqTemplate)
+	if err != nil {
+		return nil, err
+	}
+
 	render := func(wr io.Writer, data Dependence) error {
 		if v := renderedMap[data.Name]; v {
 			return nil
 		}
 
 		renderedMap[data.Name] = true
-		return tmpl.Execute(wr, data)
+		return deptmpl.Execute(wr, data)
 	}
 
 	var buf bytes.Buffer
@@ -143,6 +171,10 @@ func (rs Requirements) GenScript(installCmd string) (*bytes.Buffer, error) {
 		if err = v.GenScript(render, &buf); err != nil {
 			return nil, err
 		}
+	}
+	// write start function
+	if err = reqtmpl.Execute(&buf, rs); err != nil {
+		return nil, err
 	}
 	return &buf, nil
 }

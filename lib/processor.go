@@ -40,13 +40,18 @@ const (
 // Context is the context for a process node
 type Context interface {
 	Status() Status
-	SignalChan() chan<- Signal
+	SetStatus(Status)
+	SignalChan() <-chan Signal
+	Copy() Context
 }
 
 // Object describe data structs and could be compared by result of Id()
 type Object interface {
 	Id() string
 }
+
+// ProcessFunc is the type of function for ProcessorNode
+type ProcessFunc func(Context, Object) (Object, error)
 
 // ProcessorNode is the basic interface of nodes in process line
 type ProcessorNode interface {
@@ -55,7 +60,7 @@ type ProcessorNode interface {
 
 	// SetNextNode combine a process node to the end of current node
 	// and return it
-	SetNextNode() ProcessorNode
+	SetNextNode(ProcessorNode) ProcessorNode
 
 	// InputChan return a chan to receive Object for process
 	InputChan() chan<- Object
@@ -74,9 +79,89 @@ type ProcessorNode interface {
 	Stop() error
 }
 
+type baseNode struct {
+	context Context
+	next    ProcessorNode
+	input   chan<- Object
+	output  <-chan Object
+}
+
+// Context  context in current baseNode
+func (bn *baseNode) Context() Context {
+	return bn.context
+}
+
+// SetNextNode set a ProcessorNode as the next node of current baseNode
+func (bn *baseNode) SetNextNode(node ProcessorNode) ProcessorNode {
+	bn.next = node
+	return node
+}
+
+// InputChan input channel in current baseNode
+func (bn *baseNode) InputChan() chan<- Object {
+	return bn.input
+}
+
+// OutputChan output channel in current baseNode
+func (bn *baseNode) OutputChan() <-chan Object {
+	return bn.output
+}
+
+// EndNext end the next node if it exists
+func (bn *baseNode) EndNext() {
+	if bn.next != nil {
+		bn.next.Context().SetStatus(STOP_SIGNAL)
+	}
+}
+
+// Copy  ...
+func (bn *baseNode) Copy() *baseNode {
+	clone := &baseNode{
+		context: bn.context.Copy(),
+		next:    nil,
+		input:   make(chan<- Object, len(bn.input)),
+		output:  make(<-chan Object, len(bn.output)),
+	}
+
+	if bn.next != nil {
+		clone.next = bn.next.Copy()
+	}
+
+	return clone
+}
+
 // PipeNode nodes combined to pipe processor
 type PipeNode interface {
 	ProcessorNode
+}
+
+type pipeNode struct {
+	*baseNode
+	process ProcessFunc
+}
+
+// dealStopSignal  ...
+func (pn *pipeNode) dealStopSignal() error {
+
+}
+
+// Run ...
+func (pn *pipeNode) Run() (err error) {
+	select {
+	case signal := <-pn.Context().SignalChan():
+		if signal == STOP_SIGNAL {
+			err = pn.dealStopSignal()
+		}
+		if err != nil {
+			pn.EndNext()
+			return
+		}
+	case obj := <-pn.InputChan():
+		if pn.Context().Status() == RUNNING {
+			output, err := pn.process(pn.Context(), obj)
+			// TODO maybe I could create a CatchNode to process error
+		}
+	}
 }
 
 // BifurcateProcessorNode nodes combined to bifurcate processor
