@@ -82,8 +82,8 @@ type ProcessorNode interface {
 type baseNode struct {
 	context Context
 	next    ProcessorNode
-	input   chan<- Object
-	output  <-chan Object
+	input   chan Object
+	output  chan Object
 }
 
 // Context  context in current baseNode
@@ -119,8 +119,8 @@ func (bn *baseNode) Copy() *baseNode {
 	clone := &baseNode{
 		context: bn.context.Copy(),
 		next:    nil,
-		input:   make(chan<- Object, len(bn.input)),
-		output:  make(<-chan Object, len(bn.output)),
+		input:   make(chan Object, len(bn.input)),
+		output:  make(chan Object, len(bn.output)),
 	}
 
 	if bn.next != nil {
@@ -142,7 +142,7 @@ type pipeNode struct {
 
 // dealStopSignal  ...
 func (pn *pipeNode) dealStopSignal() error {
-
+	return nil
 }
 
 // Run ...
@@ -156,12 +156,16 @@ func (pn *pipeNode) Run() (err error) {
 			pn.EndNext()
 			return
 		}
-	case obj := <-pn.InputChan():
+	case obj := <-pn.baseNode.input:
 		if pn.Context().Status() == RUNNING {
 			output, err := pn.process(pn.Context(), obj)
+			output = output
 			// TODO maybe I could create a CatchNode to process error
+			return err
 		}
 	}
+
+	return nil
 }
 
 // BifurcateProcessorNode nodes combined to bifurcate processor

@@ -22,7 +22,6 @@ package lib
 import (
 	"errors"
 
-	"github.com/MephistoMMM/grafter/util"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -33,11 +32,11 @@ var (
 
 // YamlLoadFromFile unmarshal model from a yaml file
 func YamlLoadFromFile(path string, model interface{}) error {
-	if util.IsNotExist(path) {
+	if IsNotExist(path) {
 		return ErrYamlFileNotExist
 	}
 
-	d, err := util.ReadFile(path)
+	d, err := ReadFile(path)
 	if err != nil {
 		return err
 	}
