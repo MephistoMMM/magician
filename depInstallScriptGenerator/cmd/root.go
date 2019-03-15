@@ -78,7 +78,7 @@ var rootCmd = &cobra.Command{
 		src := args[0]
 		if !lib.IsFile(src) {
 			return fmt.Errorf(
-				"src is not exist, is not a regular file: %s",
+				"src is not exist or not a regular file: %s",
 				src)
 		}
 
