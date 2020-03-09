@@ -89,7 +89,7 @@ do
     task_name=`echo $task | awk '{ print $1 }'`
     task_code=`echo $task | awk '{ print $2 }'`
 
-    if grep $task_name $FINISH_LIST > /dev/null 2>&1; then
+    if grep -F "$task_name" $FINISH_LIST > /dev/null 2>&1; then
         continue
     fi
 
