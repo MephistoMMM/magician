@@ -65,11 +65,11 @@ function step_download_video() {
 # $1 task name
 # $2 task code
 function step_export_audio() {
-    if ls $EXPORT_DIR/${1}.flac > /dev/null 2>&1; then
+    if ls $EXPORT_DIR/${1}.m4a > /dev/null 2>&1; then
         return 0
     fi
 
-    ffmpeg -i $TMP_DIR/${2}/${2}.flv -f flac -vn $EXPORT_DIR/${1}.flac
+    ffmpeg -i $TMP_DIR/${2}/${2}.flv -acodec alac -vn $EXPORT_DIR/${1}.m4a
     return $?
 }
 

@@ -1,3 +1,36 @@
+# PKG LOAD
+
+## USAGE 
+
+1. First, write packages info into a file as task file with following format:
+
+``` sh
+groupId  artifactId  version
+```
+
+e.g.
+
+``` sh
+org.antlr   antlr4-maven-plugin   4.7.2
+org.springframework.boot spring-boot-starter-web 2.0.3.RELEASE
+```
+
+2. Then go to `pkgload` directory, run pkgload with your task file name and zip
+   file name:
+
+``` sh
+./pkgload.sh /path/to/your/task/file /path/to/zip/file
+```
+
+e.g.
+
+``` sh
+cd ./pkgload 
+./pkgload.sh ~/Desktop/20200313_task ~/Download/20200313.zip
+```
+
+## LICENSE
+
 MIT License
 
 Copyright (c) 2020 Mephis Pheies
@@ -19,3 +52,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
