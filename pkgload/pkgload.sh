@@ -49,16 +49,17 @@ cat $ROOT/pom.template \
 # 2. download package and get dependencies tree
 cd $TMP_DIR
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO"
-mvn dependency:list -Dclassifier=sources \
-    && mvn -B dependency:list > deplog
+mvn dependency:list -Dclassifier=sources -DincludeParents=true \
+    && mvn -B dependency:list -DincludeParents=true > deplog
 if [[ $? -ne 0 ]]; then
     echo "Download dependencies failed."
     exit 1
 fi
-cat deplog | grep compile | awk '{ print $2 }' \
+cat deplog | grep -E "(:compile$)|(:pom:)" | awk '{ print $2 }' \
     | sed 's/:jar:/:/g' \
     | sed 's/:no_aop:/:/g' \
     | sed 's/:compile$//g' \
+    | sed 's/:pom:/:/g' \
     > deplist
 
 rm depPath
