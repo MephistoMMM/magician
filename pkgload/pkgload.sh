@@ -55,7 +55,7 @@ if [[ $? -ne 0 ]]; then
     echo "Download dependencies failed."
     exit 1
 fi
-cat deplog | grep -E "(:compile$)|(:pom:)" | awk '{ print $2 }' \
+cat deplog | grep -E "(:compile$)|(:pom:)|(:jar:)" | awk '{ print $2 }' \
     | sed 's/:jar:/:/g' \
     | sed 's/:no_aop:/:/g' \
     | sed 's/:compile$//g' \
