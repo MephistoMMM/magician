@@ -48,6 +48,19 @@ if [[ ! -f $TODO_LIST ]];then
     exit 1
 fi
 
+# $1 stream file
+function highest_flv_format() {
+    flvlist=(flv flv1080 flv720 flv480 flv360)
+    for flv in ${flvlist[@]};
+    do
+        cat $1 | grep " format:" | grep -v "dash" | grep "$flv" > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then 
+            echo "$flv"
+            return 0
+        fi
+    done
+}
+
 
 # $1 task name
 # $2 task code
@@ -58,7 +71,8 @@ function step_download_video() {
 
     mkdir -p $TMP_DIR/$2
     download_url=$BILIBILI_VIDEO_URL_PREFIX/$2
-    you-get --format=flv -o $TMP_DIR/$2 -O $2 $download_url
+    you-get -i $download_url > $TMP_DIR/streams
+    you-get --format=$(highest_flv_format $TMP_DIR/streams) -o $TMP_DIR/$2 -O $2 $download_url
     return $?
 }
 

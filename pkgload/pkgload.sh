@@ -31,11 +31,16 @@ do
     groupId=`echo $task | awk '{ print $1 }'`
     artifactId=`echo $task | awk '{ print $2 }'`
     version=`echo $task | awk '{ print $3 }'`
+    typ=`echo $task | awk '{ print $4 }'`
+    if [[ -z "$typ" ]]; then 
+        typ="jar"
+    fi
     dependency="\
         <dependency>\\
             <groupId>$groupId</groupId>\\
             <artifactId>$artifactId</artifactId>\\
             <version>$version</version>\\
+            <type>$typ</type>\\
         </dependency>"
     dependencies="${dependencies}\\
 ${dependency}"

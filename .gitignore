@@ -17,3 +17,4 @@ bin/
 
 # golang
 vendor/
+.tmp/
